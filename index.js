@@ -2,12 +2,12 @@ const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const QRCode = require('qrcode');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 let qrImageURL = '';
 
-// Servidor Web para mostrar el QR en navegador (útil tanto para PC como para la Nube)
 app.get('/', (req, res) => {
     if (qrImageURL) {
         res.send(`
@@ -26,20 +26,22 @@ app.get('/', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Servidor web activo en el puerto ${PORT}`);
 });
 
-// Configuración de WhatsApp estable para Windows y Nube (sin opciones inestables)
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
+        executablePath: puppeteer.executablePath(),
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
             '--disable-gpu'
         ]
     }
@@ -58,13 +60,13 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => {
     console.log('\n🚀 ¡BOT SERVICIOS WALFEDW ONLINE Y LISTO PARA TRABAJAR!\n');
-    qrImageURL = ''; // Limpiamos la imagen QR tras conectarse
+    qrImageURL = '';
 });
 
 client.on('message', async msg => {
     const text = msg.body.trim().toLowerCase();
 
-    // 1. MENÚ PRINCIPAL (Comandos estrictos para no interrumpir chats normales)
+    // 1. MENÚ PRINCIPAL
     if (
         text === '0' || 
         text === 'menu' || 
@@ -86,7 +88,7 @@ Escribe el *NÚMERO* de la opción que necesitas:
         return;
     }
 
-    // 2. CATÁLOGO / JUEGOS (Solo si piden el catálogo explícitamente)
+    // 2. CATÁLOGO / JUEGOS
     if (
         text === '4' || 
         text === 'catalogo' || 
@@ -151,7 +153,7 @@ En tu PS5 ve a: *Ajustes ⚙️ ➔ Sistema ➔ Información de la consola*.
         return;
     }
 
-    // 🧠 DETECTOR INTELIGENTE DE VERSIÓN DE FIRMWARE (PS4 / PS5)
+    // DETECTOR DE FIRMWARE
     const matchVersion = text.match(/\b(1?\d\.\d\d?)\b/);
     if (matchVersion) {
         const fw = parseFloat(matchVersion[1]);
