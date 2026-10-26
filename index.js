@@ -6,21 +6,30 @@ const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+let botStatus = 'iniciando'; // Estados: 'iniciando', 'qr', 'conectado'
 let qrImageURL = '';
 
 app.get('/', (req, res) => {
-    if (qrImageURL) {
+    if (botStatus === 'qr' && qrImageURL) {
         res.send(`
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
                 <h2>📱 Escanea este código QR con tu WhatsApp:</h2>
                 <img src="${qrImageURL}" style="width:300px;height:300px;"/>
-                <p>SERVICIOS WALFEDW - Bot listo para conectar</p>
+                <p>SERVICIOS WALFEDW - Esperando escaneo...</p>
+            </div>
+        `);
+    } else if (botStatus === 'conectado') {
+        res.send(`
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+                <h1 style="color:green;">🚀 ¡El Bot de SERVICIOS WALFEDW está ONLINE y Conectado!</h1>
             </div>
         `);
     } else {
         res.send(`
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
-                <h1 style="color:green;">🚀 ¡El Bot de SERVICIOS WALFEDW está ONLINE y Conectado!</h1>
+                <h2>⏳ El Bot se está iniciando en Render...</h2>
+                <p>Por favor, recarga esta página en 10-15 segundos para ver el código QR.</p>
             </div>
         `);
     }
@@ -48,9 +57,8 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    console.log('\n==================================================');
-    console.log('📱 ESCANEA EL CÓDIGO QR EN LA TERMINAL O NAVEGADOR');
-    console.log('==================================================\n');
+    console.log('📱 CÓDIGO QR GENERADO');
+    botStatus = 'qr';
     qrcodeTerminal.generate(qr, { small: true });
     
     QRCode.toDataURL(qr, (err, url) => {
@@ -59,7 +67,8 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('\n🚀 ¡BOT SERVICIOS WALFEDW ONLINE Y LISTO PARA TRABAJAR!\n');
+    console.log('🚀 ¡BOT SERVICIOS WALFEDW ONLINE Y LISTO!');
+    botStatus = 'conectado';
     qrImageURL = '';
 });
 
